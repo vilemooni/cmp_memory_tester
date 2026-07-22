@@ -143,7 +143,7 @@ echo ""
 
 
 # ------------------------------------------------------------
-# Check nvcc
+# Check nvcc / CUDA Toolkit
 # ------------------------------------------------------------
 
 if ! command -v nvcc >/dev/null 2>&1; then
@@ -151,9 +151,20 @@ if ! command -v nvcc >/dev/null 2>&1; then
     print_error "nvcc was not found."
 
     echo ""
-    echo "The CUDA Toolkit is required to compile the VRAM tester."
+    echo "The CUDA Toolkit is required to compile vram_test.cu."
     echo ""
-    echo "Install the CUDA Toolkit and run this installer again."
+    echo "If you are using HiveOS, the CUDA Toolkit may not be"
+    echo "installed by default."
+    echo ""
+    echo "Install a CUDA Toolkit version compatible with your"
+    echo "NVIDIA driver, then run this installer again:"
+    echo ""
+    echo "  ./install.sh"
+    echo ""
+    echo "Note:"
+    echo "The CUDA Toolkit is only required for compilation."
+    echo "After compilation, the vram_test binary can be run"
+    echo "without nvcc."
     echo ""
 
     exit 1
