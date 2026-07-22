@@ -1,3 +1,5 @@
+donations: Pearl : prl1pq9hcxemegkd9657zrecntrxmz6ngcs6pq30gew7a2n0g0xpgulaq574frf
+
 # CUDA VRAM Tester
 
 A CUDA-based GPU memory testing tool for Linux and NVIDIA GPUs.
