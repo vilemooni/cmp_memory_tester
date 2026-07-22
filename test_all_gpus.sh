@@ -290,9 +290,7 @@ for GPU in $GPU_LIST; do
         echo "GPU $GPU: PASS" | tee -a "$LOG"
 
 
-        PASS_COUNT=$(
-            (PASS_COUNT + 1)
-        )
+        PASS_COUNT=$((PASS_COUNT + 1))
 
 
     else
@@ -301,9 +299,7 @@ for GPU in $GPU_LIST; do
         echo "GPU $GPU: FAIL" | tee -a "$LOG"
 
 
-        FAIL_COUNT=$(
-            (FAIL_COUNT + 1)
-        )
+        FAIL_COUNT=$((FAIL_COUNT + 1))
 
 
     fi
