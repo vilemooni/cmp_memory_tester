@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
-#include <cstring>
+
 
 #define CUDA_CHECK(call)                                      \
 do {                                                          \
@@ -78,6 +78,10 @@ __global__ void check_pattern(
 
 int main(int argc, char **argv)
 {
+    // --------------------------------------------------------
+    // Check command line arguments
+    // --------------------------------------------------------
+
     if (argc < 3) {
 
         printf(
@@ -95,13 +99,17 @@ int main(int argc, char **argv)
 
 
     // --------------------------------------------------------
-    // Parse arguments
+    // Parse GPU ID
     // --------------------------------------------------------
 
-    char *endptr;
+    char *endptr = nullptr;
 
     long gpu_long =
-        strtol(argv[1], &endptr, 10);
+        strtol(
+            argv[1],
+            &endptr,
+            10
+        );
 
     if (*endptr != '\0' ||
         gpu_long < 0) {
@@ -119,8 +127,17 @@ int main(int argc, char **argv)
         (int)gpu_long;
 
 
+    // --------------------------------------------------------
+    // Parse requested VRAM amount
+    // --------------------------------------------------------
+
+    endptr = nullptr;
+
     double requested_gb =
-        strtod(argv[2], &endptr);
+        strtod(
+            argv[2],
+            &endptr
+        );
 
     if (*endptr != '\0' ||
         requested_gb <= 0) {
@@ -136,13 +153,15 @@ int main(int argc, char **argv)
 
 
     // --------------------------------------------------------
-    // Get GPU count
+    // Get CUDA GPU count
     // --------------------------------------------------------
 
     int gpu_count = 0;
 
     cudaError_t count_result =
-        cudaGetDeviceCount(&gpu_count);
+        cudaGetDeviceCount(
+            &gpu_count
+        );
 
     if (count_result != cudaSuccess) {
 
@@ -154,7 +173,9 @@ int main(int argc, char **argv)
         fprintf(
             stderr,
             "CUDA error: %s\n",
-            cudaGetErrorString(count_result)
+            cudaGetErrorString(
+                count_result
+            )
         );
 
         return 1;
@@ -184,7 +205,9 @@ int main(int argc, char **argv)
     // --------------------------------------------------------
 
     CUDA_CHECK(
-        cudaSetDevice(gpu)
+        cudaSetDevice(
+            gpu
+        )
     );
 
 
@@ -203,11 +226,11 @@ int main(int argc, char **argv)
 
 
     // --------------------------------------------------------
-    // Get memory information
+    // Get current VRAM information
     // --------------------------------------------------------
 
-    size_t free_mem;
-    size_t total_mem;
+    size_t free_mem = 0;
+    size_t total_mem = 0;
 
     CUDA_CHECK(
         cudaMemGetInfo(
@@ -231,7 +254,7 @@ int main(int argc, char **argv)
 
 
     // --------------------------------------------------------
-    // Header
+    // Print GPU information
     // --------------------------------------------------------
 
     printf(
@@ -257,10 +280,9 @@ int main(int argc, char **argv)
     );
 
     printf(
-        "PCI Bus ID:   %02X:%02X.%X\n",
+        "PCI Bus ID:   %02X:%02X.0\n",
         prop.pciBusID,
-        prop.pciDeviceID,
-        prop.pciDomainID
+        prop.pciDeviceID
     );
 
     printf(
@@ -295,7 +317,7 @@ int main(int argc, char **argv)
 
 
     // --------------------------------------------------------
-    // Check requested memory
+    // Check that requested VRAM is available
     // --------------------------------------------------------
 
     if (test_bytes >= free_mem) {
@@ -366,6 +388,10 @@ int main(int argc, char **argv)
     }
 
 
+    // --------------------------------------------------------
+    // Calculate number of 64-bit elements
+    // --------------------------------------------------------
+
     size_t elements =
         test_bytes /
         sizeof(uint64_t);
@@ -375,17 +401,43 @@ int main(int argc, char **argv)
     // Allocate error counter
     // --------------------------------------------------------
 
-    unsigned long long *d_errors;
+    unsigned long long *d_errors = nullptr;
 
-    CUDA_CHECK(
+    cudaError_t error_alloc =
         cudaMalloc(
             (void **)&d_errors,
             sizeof(
                 unsigned long long
             )
-        )
-    );
+        );
 
+
+    if (error_alloc != cudaSuccess) {
+
+        fprintf(
+            stderr,
+            "\nERROR: Could not allocate error counter.\n"
+        );
+
+        fprintf(
+            stderr,
+            "%s\n",
+            cudaGetErrorString(
+                error_alloc
+            )
+        );
+
+        cudaFree(
+            d_data
+        );
+
+        return 1;
+    }
+
+
+    // --------------------------------------------------------
+    // Configure CUDA kernel
+    // --------------------------------------------------------
 
     int threads = 256;
 
@@ -426,7 +478,7 @@ int main(int argc, char **argv)
 
 
     // --------------------------------------------------------
-    // Run tests
+    // Run all memory tests
     // --------------------------------------------------------
 
     for (int test = 0;
@@ -440,6 +492,8 @@ int main(int argc, char **argv)
         );
 
 
+        // Reset error counter
+
         CUDA_CHECK(
             cudaMemset(
                 d_errors,
@@ -450,6 +504,8 @@ int main(int argc, char **argv)
             )
         );
 
+
+        // Write VRAM
 
         printf(
             "Writing VRAM...\n"
@@ -477,6 +533,8 @@ int main(int argc, char **argv)
         );
 
 
+        // Read and validate VRAM
+
         printf(
             "Reading and validating...\n"
         );
@@ -503,6 +561,8 @@ int main(int argc, char **argv)
             cudaDeviceSynchronize()
         );
 
+
+        // Copy error count back to CPU
 
         unsigned long long errors = 0;
 
@@ -539,7 +599,7 @@ int main(int argc, char **argv)
 
 
     // --------------------------------------------------------
-    // Cleanup
+    // Free allocated memory
     // --------------------------------------------------------
 
     cudaFree(
@@ -573,6 +633,10 @@ int main(int argc, char **argv)
 
         printf(
             "Memory errors were detected.\n"
+        );
+
+        printf(
+            "========================================\n"
         );
 
         return 1;
