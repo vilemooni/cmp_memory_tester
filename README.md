@@ -223,6 +223,3 @@ The amount of VRAM tested should leave some memory available for the CUDA runtim
 
 For a GPU reporting approximately 64 GB of VRAM, testing 60 GiB is a practical starting point.
 
-### Example: 64 GB GPU
-
-For a GPU reporting 64 GB of VRAM:
