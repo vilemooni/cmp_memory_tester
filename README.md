@@ -22,13 +22,25 @@ It is especially useful for testing GPUs with modified or expanded VRAM configur
 
 ## Requirements
 
-* Linux
-* NVIDIA GPU
-* NVIDIA proprietary driver
-* CUDA Toolkit with `nvcc`
-* `nvidia-smi`
+- Linux
+- NVIDIA GPU
+- Working NVIDIA driver
+- `nvidia-smi`
+- CUDA Toolkit with `nvcc`
+- Bash
 
-The CUDA Toolkit version used to compile the program does not necessarily need to match the CUDA version reported by `nvidia-smi`. The installed NVIDIA driver must support the CUDA runtime requirements of the compiled application.
+### HiveOS users
+
+The NVIDIA driver is normally available in HiveOS, but the CUDA Toolkit and `nvcc` compiler may not be installed by default.
+
+The CUDA Toolkit is required **only to compile** `vram_test.cu`.
+
+After the program has been compiled, the resulting `vram_test` binary can be run without `nvcc`.
+
+If `nvcc` is not installed, install a compatible CUDA Toolkit for your NVIDIA driver and then run:
+
+```bash
+./install.sh
 
 ## Installation
 
